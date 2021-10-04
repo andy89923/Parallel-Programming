@@ -54,36 +54,45 @@ void clampedExpVector(float *values, int *exponents, float *output, int N) {
     __pp_vec_float x;
     __pp_vec_float result;
     __pp_vec_int y, zero = _pp_vset_int(0), one = _pp_vset_int(1);
-
     __pp_vec_float maxNum = _pp_vset_float(max_num);
-    __pp_mask maskAll, maskMaxNum, maskExpZero, maskNow, maskOver;
+
+    __pp_mask maskAll, maskMaxNum, maskNow, maskOver, maskNxt;
 
 
     for (int i = 0; i < N; i += VECTOR_WIDTH) {
 
-        if (N < i + VECTOR_WIDTH)
+        if (N < i + VECTOR_WIDTH) {
             maskAll = _pp_init_ones(N - i);
+        }
+        else {
+            maskAll = _pp_init_ones();
+        }
+        addUserLog("Init finished");
+        
+        maskMaxNum = _pp_init_ones(0);
+        maskOver = _pp_init_ones(0);
+        maskNow = _pp_init_ones(0);
+        maskNxt = _pp_init_ones(0);
+        
+        _pp_vload_float(x, values + i, maskAll);     // load x
+        _pp_vload_int(y, exponents + i, maskAll);    // load y
 
 
-        _pp_vload_float(y, exponents + i, maskAll);  // load y
+        _pp_vgt_int(maskNow, y, zero, maskAll);
+        _pp_vset_float(result, 1.0, maskAll); 
 
-        _pp_veq_int(maskExpZero, y, zero, maskAll);  // if y == 0:
-        _pp_vset_float(result, 0.0, maskExpZero);    //     result = 0 
-
-        maskNow = _pp_mask_not(maskExpZero);
-        _pp_vset_float(result, 1.0, maskNow); 
- 
         while (_pp_cntbits(maskNow) > 0) {
 
             _pp_vmult_float(result, result, x, maskNow);
 
             _pp_vsub_int(y, y, one, maskNow);
 
-            _pp_vgt_int(y, y, zero, maskNow);
+            _pp_vgt_int(maskNxt, y, zero, maskNow);
+            maskNow = maskNxt;
         }
-        _pp_vgt_float(maskOver, y, maxNum, maskAll);
+        _pp_vgt_float(maskOver, result, maxNum, maskAll);
 
-        _pp_vset_float(result, y, max_num, maskOver);
+        _pp_vset_float(result, max_num,  maskOver);
 
         _pp_vstore_float(output + i, result, maskAll);
     }
