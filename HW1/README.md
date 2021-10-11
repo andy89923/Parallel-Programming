@@ -3,7 +3,7 @@
 ###### tags: `110Fall` `Parallel Programming` `HW`
 
  **陳琮方 0816153**
-[HackMD](https://hackmd.io/KJT_ueEGQsqRZ5OKcsWrIA?both)
+[HackMD](https://hackmd.io/@CTFang/BkbL7K4VF)
 
 [toc]
 
