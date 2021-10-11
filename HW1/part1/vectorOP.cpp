@@ -106,13 +106,13 @@ float arraySumVector(float *values, int N) {
     //
     // PP STUDENTS TODO: Implement your vectorized version of arraySumSerial here
     //
-
-    int m = 0;
-    while (n % 2 == 0) { m += 1; n >>= 1; }
+    
+    float sum = 0.0;
+    int m = 0, tmp = VECTOR_WIDTH;
+    while (tmp % 2 == 0) { m += 1; tmp >>= 1; }
 
     __pp_vec_float x, y;
     __pp_mask maskAll;
-
 
     for (int i = 0; i < N; i += VECTOR_WIDTH) {
         maskAll = _pp_init_ones();
@@ -123,7 +123,8 @@ float arraySumVector(float *values, int N) {
             _pp_hadd_float(y, x);
             _pp_interleave_float(x, y);
         }
+        sum += x.value[0];
     }
 
-    return x.values[0];
+    return sum;
 }
