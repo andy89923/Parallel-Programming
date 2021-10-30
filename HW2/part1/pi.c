@@ -14,12 +14,12 @@ const double rand_max =  1.0;
 void* thread_func(void* tim) {
 
 	long long t = *((long long*) tim);
-    unsigned int mystate = time(NULL);
+    unsigned int mystate = 214786124; // time(NULL);
 
 	double x, y;
 	long long tmp_ans = 0;
 
-	for (long long i = 0; i < t; i++) {
+	for (long long i = 0; i < t; ++i) {
 		x = (rand_max - rand_min) * rand_r(&mystate) / (RAND_MAX + 1.0) + rand_min;
 		y = (rand_max - rand_min) * rand_r(&mystate) / (RAND_MAX + 1.0) + rand_min;
 
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 		printf("\nAns = %lld, out of toss = %lld\n\n", ans, tims[thread]);
 	#endif
 
-	double pi_estimate = 4.0 * ans / (double) num_toss;
+	double pi_estimate = ans * 4.0 / (double) num_toss;
 	printf("%.7lf\n", pi_estimate);
 
 	pthread_mutex_destroy(&mutex);
