@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
         minSerial = std::min(minSerial, endTime - startTime);
     }
 
-    printf("[mandelbrot serial]:\t\t[%.3f] ms\n", minSerial * 1000);
+    printf("\033[0;33m[mandelbrot serial]:\t\t[%.3f] ms\n\033[0m", minSerial * 1000);
     writePPMImage(output_serial, width, height, "mandelbrot-serial.ppm", maxIterations);
 
     //
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
         minThread = std::min(minThread, endTime - startTime);
     }
 
-    printf("[mandelbrot thread]:\t\t[%.3f] ms\n", minThread * 1000);
+    printf("\033[0;32m[mandelbrot thread]:\t\t[%.3f] ms\n\033[0m", minThread * 1000);
     writePPMImage(output_thread, width, height, "mandelbrot-thread.ppm", maxIterations);
 
     if (! verifyResult (output_serial, output_thread, width, height)) {
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
     }
 
     // compute speedup
-    printf("\t\t\t\t(%.2fx speedup from %d threads)\n", minSerial/minThread, numThreads);
+    printf("\033[0;31m\t\t\t\t(%.2fx speedup from %d threads)\n\033[0m", minSerial/minThread, numThreads);
 
     delete[] output_serial;
     delete[] output_thread;
