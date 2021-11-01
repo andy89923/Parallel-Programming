@@ -5,6 +5,8 @@
 #include <unistd.h>
 #define eps 1e-9
 
+#pragma GCC optimize("Ofast", "unroll-loops")
+
 pthread_mutex_t mutex;
 long long ans = 0;
 

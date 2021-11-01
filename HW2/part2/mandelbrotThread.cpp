@@ -1,3 +1,4 @@
+#pragma GCC optimize("Ofast", "unroll-loops", "O3")
 #include <stdio.h>
 #include <thread>
 
