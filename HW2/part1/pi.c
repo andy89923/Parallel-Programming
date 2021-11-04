@@ -33,8 +33,8 @@ void* thread_func(void* tim) {
 //    unsigned int mystate = 214786124; // time(NULL);
 	
 	pcg32_random_t mystate;
-	mystate.state = (u_int64_t) 214786124;
-	mystate.inc = (u_int64_t) 214548464; 
+	mystate.state = (u_int64_t) rand();
+	mystate.inc = (u_int64_t) rand(); 
 
 	double x, y;
 	long long tmp_ans = 0;
@@ -69,6 +69,7 @@ int main(int argc, char const *argv[]) {
 	long long* tims = (long long*) malloc(num_thread * sizeof(long long));
 	pthread_mutex_init(&mutex, NULL);
 
+	srand(time(NULL));
 
 	long thread;
 	for (thread = 0; thread < num_thread; thread++) {
