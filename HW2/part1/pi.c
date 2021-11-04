@@ -7,27 +7,44 @@
 
 #pragma GCC optimize("Ofast", "unroll-loops")
 
+typedef struct { u_int64_t state;  u_int64_t inc; } pcg32_random_t;
+
+u_int32_t pcg32_random_r(pcg32_random_t* rng) {
+    u_int64_t oldstate = rng->state;
+    // Advance internal state
+    rng->state = oldstate * 6364136223846793005ULL + (rng->inc|1);
+    // Calculate output function (XSH RR), uses old state for max ILP
+    u_int32_t xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
+    u_int32_t rot = oldstate >> 59u;
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+}
+
 pthread_mutex_t mutex;
 long long ans = 0;
 
+const double INT_MAX = 4294967295;
 const double rand_min = -1.0;
 const double rand_max =  1.0;
+const double rang = 2.0;
 
 void* thread_func(void* tim) {
 
 	long long t = *((long long*) tim);
-    unsigned int mystate = 214786124; // time(NULL);
+//    unsigned int mystate = 214786124; // time(NULL);
+	
+	pcg32_random_t mystate;
+	mystate.state = (u_int64_t) 214786124;
+	mystate.inc = (u_int64_t) 214548464; 
 
 	double x, y;
 	long long tmp_ans = 0;
 
 	for (long long i = 0; i < t; ++i) {
-		x = (rand_max - rand_min) * rand_r(&mystate) / (RAND_MAX + 1.0) + rand_min;
-		y = (rand_max - rand_min) * rand_r(&mystate) / (RAND_MAX + 1.0) + rand_min;
+		x = rang * pcg32_random_r(&mystate) / (INT_MAX + 1.0) + rand_min;
+		y = rang * pcg32_random_r(&mystate) / (INT_MAX + 1.0) + rand_min;
 
 		if (x * x + y * y - rand_max <= eps) tmp_ans += 1;
 	}
-
 
 	pthread_mutex_lock(&mutex);
 
