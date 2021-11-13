@@ -51,65 +51,65 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
 
     int numNodes = num_nodes(g);
     double equal_prob = 1.0 / numNodes;
+	double dPnN = (1.0 - damping) / numNodes;
+	double dnN = damping / numNodes;
 
-    double *solution_old = malloc(numNodes * sizeof(Vertex));
-    bool *no_out = calloc(0, numNodes * sizeof(bool));
+    double *solution_old = (double*) malloc(numNodes * sizeof(double));
+    bool *no_out = (bool*) calloc(numNodes, sizeof(bool));
 
-    #pragma omp parallel for
+    #pragma omp parallel for 
     for (int i = 0; i < numNodes; i++) {
-        if (outgoing_size(g, i) == 0) no_out = 1;
+        if (outgoing_size(g, i) == 0) 
+			no_out[i] = true;
+		else
+			no_out[i] = false;
+
+		solution[i] = equal_prob;
     }
 
-    #pragma omp parallel for
-    for (int i = 0; i < numNodes; ++i) {
-        solution_old[i] = equal_prob;
-    }
+	double dsum, from_no;
+	double global_diff;
 
-    bool converge = 1;
+    bool converge = 0;
     while (!converge) {
 
-        #pragma omp parallel for
+		from_no = 0.0;
+
+		#pragma omp parallel for reduction(+: from_no)
         for (int i = 0; i < numNodes; i++) {
             solution_old[i] = solution[i];
             solution[i] = 0.0;
+
+			from_no += (no_out[i]  ? solution_old[i] : 0.0);
         }
-
-        #pragma omp parallel for
+	
+		#pragma omp parallel for private(dsum)
         for (int i = 0; i < numNodes; i++) {
+			//solution_old[i] = solution[i];
+			//solution[i] = 0;
 
-            int m = outgoing_size(g, i);
-            double p = solution_old[i] / m;
+            const Vertex* vs = incoming_begin(g, i);
+			const Vertex* vt = incoming_end(g, i);
+			
+			dsum = 0.0;
 
-            const Vertex* vs = outgoing_end(g, i);
-
-            // #pragma omp parallel for
-            for (int j = 0; j < m; j++) {
-                int endV = *(vs + j);
-                solution[endV] += p;
+			int ss;
+            for (const Vertex* v = vs; v != vt; v++) {
+				ss = outgoing_size(g, *v);
+				dsum += solution_old[*v] / ss;
             }
-        }
+			solution[i] = dsum * damping + dPnN;
+			solution[i] += from_no * dnN;
 
-        #pragma omp parallel for
-        for (int i = 0; i < numNodes; i++) {
-            solution[i] = solution[i] * damping + (double) (1.0 - damping) / numNodes;
-        }
-
-        double from_no = 0.0;
-
-        #pragma omp parallel for reduction(+: from_no)
-        for (int i = 0; i < numNodes; i++) {
-            double now = (no_out[i] == 0 ? damping * solution_old[i] / numNodes : 0.0);
-
-            from_no += now;
+			// from_no += (outgoing_size(g, i) == 0 ? solution_old[i] : 0.0);
         }
 
 
-        double global_diff = 0.0;
+        global_diff = 0.0;
 
         #pragma omp parallel for reduction(+: global_diff)
         for (int i = 0; i < numNodes; i++) {
-            solution[i] += from_no;
-            global_diff += abs(solution_old[i] - solution[i]);
+            global_diff += fabs(solution_old[i] - solution[i]);
         }
 
         converge = (global_diff < convergence);
