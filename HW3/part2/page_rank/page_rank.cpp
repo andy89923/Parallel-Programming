@@ -55,20 +55,21 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
 	double dnN = damping / numNodes;
 
     double *solution_old = (double*) malloc(numNodes * sizeof(double));
-    bool *no_out = (bool*) calloc(numNodes, sizeof(bool));
+    //bool *no_out = (bool*) calloc(numNodes, sizeof(bool));
 
-    #pragma omp parallel for 
+    #pragma omp parallel for schedule(static, 256) 
     for (int i = 0; i < numNodes; i++) {
-        if (outgoing_size(g, i) == 0) 
-			no_out[i] = true;
-		else
-			no_out[i] = false;
+        //if (outgoing_size(g, i) == 0) 
+		//	no_out[i] = true;
+		//else
+		//	no_out[i] = false;
 
 		solution[i] = equal_prob;
     }
 
 	double dsum, from_no;
 	double global_diff;
+	int ss;
 
     bool converge = 0;
     while (!converge) {
@@ -80,10 +81,10 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
             solution_old[i] = solution[i];
             solution[i] = 0.0;
 
-			from_no += (no_out[i]  ? solution_old[i] : 0.0);
+			from_no += (outgoing_size(g, i) == 0 ? solution_old[i] : 0.0);
         }
 	
-		#pragma omp parallel for private(dsum)
+		#pragma omp parallel for private(dsum, ss)
         for (int i = 0; i < numNodes; i++) {
 			//solution_old[i] = solution[i];
 			//solution[i] = 0;
@@ -93,7 +94,6 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
 			
 			dsum = 0.0;
 
-			int ss;
             for (const Vertex* v = vs; v != vt; v++) {
 				ss = outgoing_size(g, *v);
 				dsum += solution_old[*v] / ss;
