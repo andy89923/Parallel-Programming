@@ -57,7 +57,7 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
     double *solution_old = (double*) malloc(numNodes * sizeof(double));
     //bool *no_out = (bool*) calloc(numNodes, sizeof(bool));
 
-    #pragma omp parallel for schedule(static, 256) 
+    #pragma omp parallel for // schedule(static, 256) 
     for (int i = 0; i < numNodes; i++) {
         //if (outgoing_size(g, i) == 0) 
 		//	no_out[i] = true;
