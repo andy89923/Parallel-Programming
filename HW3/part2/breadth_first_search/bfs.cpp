@@ -25,8 +25,10 @@ void vertex_set_init(vertex_set *list, int count) {
 // Take one step of "top-down" BFS.  For each vertex on the frontier,
 // follow all outgoing edges, and add all neighboring vertices to the
 // new_frontier.
-void top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int *distances)  {
+bool top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int *distances)  {
     
+    bool hasFrontier = false;
+
 	#pragma omp parallel for
     for (int i = 0; i < frontier -> count; i++) {
 
@@ -52,10 +54,12 @@ void top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int 
 					int idx = __sync_add_and_fetch(&new_frontier -> count, 1);
                 
 					new_frontier -> vertices[idx - 1] = outgoing;
+                    hasFrontier = true;
 				}
             }
         }
     }
+    return hasFrontier;
 }
 
 // Implements top-down BFS.
@@ -100,8 +104,6 @@ void bfs_top_down(Graph graph, solution *sol) {
         frontier = new_frontier;
         new_frontier = tmp;
     }
-	//free(frontier);
-	//free(new_frontier);
 }
 
 /*
@@ -194,5 +196,55 @@ void bfs_hybrid(Graph graph, solution *sol) {
     // You will need to implement the "hybrid" BFS here as
     // described in the handout.
 
+    // Top-Down
+    vertex_set list1;
+    vertex_set list2;
+    vertex_set_init(&list1, graph->num_nodes);
+    vertex_set_init(&list2, graph->num_nodes);
 
+    vertex_set *frontier_td = &list1;
+    vertex_set *new_frontier_td = &list2;
+
+    frontier -> vertices[frontier -> count++] = ROOT_NODE_ID;
+    sol -> distances[ROOT_NODE_ID] = 0;
+
+    int n = graph -> num_nodes;
+    bool hasFrontier = true, changeBT = false;
+
+    // Bottom-Up
+    bool *frontier_bt     = (bool*) calloc(n, sizeof(bool));
+    bool *new_frontier_bt = (bool*) calloc(n, sizeof(bool));
+    int  *inc_edge = graph -> incoming_edges;
+
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++)
+        sol -> distances[i] = NOT_VISITED_MARKER;
+
+
+    int dis = 1;
+    while (hasFrontier) {
+
+        // Top-Down
+        if (!changeBT and (float) (frontier -> count) / n < 0.1) {
+
+            vertex_set_clear(new_frontier_td);
+            hasFrontier = top_down_step(graph, frontier_td, new_frontier_td, sol -> distances);
+
+            vertex_set *tmp = frontier;
+            frontier = new_frontier;
+            new_frontier = tmp;
+
+            continue;
+        }
+        // Bottom-Up
+
+        changeBT = true;
+        hasFrontier = bottom_up_step(graph, frontier_bt, new_frontier_bt, sol -> distances, n, inc_edge, dis);
+
+        bool *tmp = frontier_bt;
+        frontier_bt = new_frontier_bt;
+        new_frontier_bt = tmp;
+
+        dis += 1;
+    }
 }
