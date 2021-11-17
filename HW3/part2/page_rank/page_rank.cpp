@@ -113,5 +113,7 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
         }
 
         converge = (global_diff < convergence);
+
+        free(solution_old);
     }
 }
