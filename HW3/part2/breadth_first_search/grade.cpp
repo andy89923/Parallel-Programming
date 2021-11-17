@@ -284,9 +284,10 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> grade_graphs = { "grid1000x1000.graph",
                                               "soc-livejournal1_68m.graph",
-                                              "com-orkut_117m.graph",
-                                              "random_500m.graph",
-                                              "rmat_200m.graph"};                                       
+                                              //"com-orkut_117m.graph",
+                                              //"random_500m.graph",
+                                              //"rmat_200m.graph"
+											};                                       
 
     std::vector<std::vector<double>> scores(grade_graphs.size());
     // top_down 0

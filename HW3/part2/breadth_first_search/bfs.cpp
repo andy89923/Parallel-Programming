@@ -27,7 +27,7 @@ void vertex_set_init(vertex_set *list, int count) {
 // new_frontier.
 void top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int *distances)  {
     
-    #pragma omp parallel for schedule(dynamic, 1024)
+	#pragma omp parallel for
     for (int i = 0; i < frontier -> count; i++) {
 
         int node = frontier -> vertices[i];
@@ -42,10 +42,17 @@ void top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int 
             int outgoing = g -> outgoing_edges[neighbor];
 
             if (distances[outgoing] == NOT_VISITED_MARKER) {
-                distances[outgoing] = distances[node] + 1;
+                // distances[outgoing] = distances[node] + 1;
                 
-                int index = new_frontier -> count++;
-                new_frontier -> vertices[index] = outgoing;
+                // int index = new_frontier -> count++;
+                // new_frontier -> vertices[index] = outgoing;
+
+				if(__sync_bool_compare_and_swap(&distances[outgoing], NOT_VISITED_MARKER, distances[node] + 1)) {
+					
+					int idx = __sync_add_and_fetch(&new_frontier -> count, 1);
+                
+					new_frontier -> vertices[idx - 1] = outgoing;
+				}
             }
         }
     }
@@ -93,6 +100,8 @@ void bfs_top_down(Graph graph, solution *sol) {
         frontier = new_frontier;
         new_frontier = tmp;
     }
+	//free(frontier);
+	//free(new_frontier);
 }
 
 /*
@@ -119,8 +128,8 @@ bool bottom_up_step(Graph g, bool *frontier, bool *new_frontier, int *distances,
     for (int i = 0; i < n; i++) {
 
         if (distances[i] == NOT_VISITED_MARKER) {
-            int start_edge = incoming_starts[i];
-            int end_edge = (i == total_nodes - 1) ? total_edges : incoming_starts[i + 1];
+            int start_edge = g -> incoming_starts[i];
+            int end_edge = (i == n - 1) ? g -> num_edges : g -> incoming_starts[i + 1];
 
             for (int j = start_edge; j != end_edge; j++) {
                 if (frontier[from[j]]) {
@@ -155,8 +164,7 @@ void bfs_bottom_up(Graph graph, solution *sol) {
 
     bool *frontier     = (bool*) calloc(n, sizeof(bool));
     bool *new_frontier = (bool*) calloc(n, sizeof(bool));
-    int  *from = graph -> incoming_edges;
-
+    int  *inc_edge = graph -> incoming_edges;
 
     #pragma omp parallel for
     for (int i = 0; i < n; i++)
@@ -168,14 +176,16 @@ void bfs_bottom_up(Graph graph, solution *sol) {
     int dis = 1;
     while (hasFrontier) {
 
-        hasFrontier = bottom_up_step(graph, frontier, new_frontier, sol -> distances, n, from, dis);
+        hasFrontier = bottom_up_step(graph, frontier, new_frontier, sol -> distances, n, inc_edge, dis);
 
-        vertex_set *tmp = frontier;
+        bool *tmp = frontier;
         frontier = new_frontier;
         new_frontier = tmp;
 
         dis += 1;
     }
+	//free(frontier);
+	//free(new_frontier);
 }
 
 void bfs_hybrid(Graph graph, solution *sol) {
