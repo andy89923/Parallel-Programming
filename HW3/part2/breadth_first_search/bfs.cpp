@@ -25,7 +25,7 @@ void vertex_set_init(vertex_set *list, int count) {
 // Take one step of "top-down" BFS.  For each vertex on the frontier,
 // follow all outgoing edges, and add all neighboring vertices to the
 // new_frontier.
-bool top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int *distances)  {
+bool top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int *distances, bool *frontier_bu)  {
     
     bool hasFrontier = false;
 
@@ -55,6 +55,8 @@ bool top_down_step(Graph g, vertex_set *frontier, vertex_set *new_frontier, int 
                 
 					new_frontier -> vertices[idx - 1] = outgoing;
                     hasFrontier = true;
+
+					frontier_bu[outgoing] = true;
 				}
             }
         }
@@ -70,11 +72,13 @@ void bfs_top_down(Graph graph, solution *sol) {
 
     vertex_set list1;
     vertex_set list2;
-    vertex_set_init(&list1, graph->num_nodes);
-    vertex_set_init(&list2, graph->num_nodes);
+    vertex_set_init(&list1, graph -> num_nodes);
+    vertex_set_init(&list2, graph -> num_nodes);
 
     vertex_set *frontier = &list1;
     vertex_set *new_frontier = &list2;
+
+	bool *tmp = (bool*) calloc(graph -> num_nodes, sizeof(bool));
 
     // initialize all nodes to NOT_VISITED
     #pragma omp parallel for
@@ -92,7 +96,7 @@ void bfs_top_down(Graph graph, solution *sol) {
         #endif
 
         vertex_set_clear(new_frontier);
-        top_down_step(graph, frontier, new_frontier, sol->distances);
+        top_down_step(graph, frontier, new_frontier, sol->distances, tmp);
 
         #ifdef VERBOSE
             double end_time = CycleTimer::currentSeconds();
@@ -104,6 +108,7 @@ void bfs_top_down(Graph graph, solution *sol) {
         frontier = new_frontier;
         new_frontier = tmp;
     }
+	free(tmp);
 }
 
 /*
@@ -205,9 +210,6 @@ void bfs_hybrid(Graph graph, solution *sol) {
     vertex_set *frontier_td = &list1;
     vertex_set *new_frontier_td = &list2;
 
-    frontier -> vertices[frontier -> count++] = ROOT_NODE_ID;
-    sol -> distances[ROOT_NODE_ID] = 0;
-
     int n = graph -> num_nodes;
     bool hasFrontier = true, changeBT = false;
 
@@ -220,20 +222,23 @@ void bfs_hybrid(Graph graph, solution *sol) {
     for (int i = 0; i < n; i++)
         sol -> distances[i] = NOT_VISITED_MARKER;
 
+	frontier_td -> vertices[frontier_td -> count++] = ROOT_NODE_ID;
+    sol -> distances[ROOT_NODE_ID] = 0;
 
     int dis = 1;
     while (hasFrontier) {
 
         // Top-Down
-        if (!changeBT and (float) (frontier -> count) / n < 0.1) {
+        if (!changeBT and (float) (frontier_td -> count) / n < 0.1) {
 
             vertex_set_clear(new_frontier_td);
-            hasFrontier = top_down_step(graph, frontier_td, new_frontier_td, sol -> distances);
+            hasFrontier = top_down_step(graph, frontier_td, new_frontier_td, sol -> distances, frontier_bt);
 
-            vertex_set *tmp = frontier;
-            frontier = new_frontier;
-            new_frontier = tmp;
-
+            vertex_set *tmp = frontier_td;
+            frontier_td = new_frontier_td;
+            new_frontier_td = tmp;
+			
+			dis += 1;
             continue;
         }
         // Bottom-Up

@@ -282,10 +282,10 @@ int main(int argc, char** argv) {
     printf("Max system threads = %d\n", omp_get_max_threads());
     printf("Running with %d threads\n", num_threads);
 
-    std::vector<std::string> grade_graphs = { "grid1000x1000.graph",
-                                              "soc-livejournal1_68m.graph",
-                                              //"com-orkut_117m.graph",
-                                              //"random_500m.graph",
+    std::vector<std::string> grade_graphs = { //"grid1000x1000.graph",
+                                              //"soc-livejournal1_68m.graph",
+                                              "com-orkut_117m.graph",
+                                              "random_500m.graph",
                                               //"rmat_200m.graph"
 											};                                       
 
