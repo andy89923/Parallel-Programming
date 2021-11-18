@@ -191,8 +191,8 @@ void bfs_bottom_up(Graph graph, solution *sol) {
 
         dis += 1;
     }
-	//free(frontier);
-	//free(new_frontier);
+	free(frontier);
+	free(new_frontier);
 }
 
 void bfs_hybrid(Graph graph, solution *sol) {
@@ -252,4 +252,6 @@ void bfs_hybrid(Graph graph, solution *sol) {
 
         dis += 1;
     }
+	free(frontier_bt);
+	free(new_frontier_bt);
 }
