@@ -50,9 +50,9 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
     // precision scores are used to avoid underflow for large graphs
 
     int numNodes = num_nodes(g);
-    double equal_prob = 1.0 / numNodes;
-	double dPnN = (1.0 - damping) / numNodes;
-	double dnN = damping / numNodes;
+    double equal_prob = (double) 1.0 / numNodes;
+	// double dPnN = (1.0 - damping) / numNodes;
+	// double dnN = damping / numNodes;
 
     double *solution_old = (double*) malloc(numNodes * sizeof(double));
     //bool *no_out = (bool*) calloc(numNodes, sizeof(bool));
@@ -96,10 +96,10 @@ void pageRank(Graph g, double *solution, double damping, double convergence) {
 
             for (const Vertex* v = vs; v != vt; v++) {
 				ss = outgoing_size(g, *v);
-				dsum += solution_old[*v] / ss;
+				dsum += (ss == 0 ? 0.0 : solution_old[*v] / ss);
             }
-			solution[i] = dsum * damping + dPnN;
-			solution[i] += from_no * dnN;
+			solution[i] = dsum * damping + (1.0 - damping) / numNodes;
+			solution[i] += from_no * damping / numNodes;
 
 			// from_no += (outgoing_size(g, i) == 0 ? solution_old[i] : 0.0);
         }
