@@ -3,11 +3,7 @@ hello: hello.cc
 	mpirun -np 8 --hostfile hosts mpi_hello
 
 test_hello: hello
-	for i in 1...16; do 
-		printf "\n\nTest %d\n" $${i}; 
-		mpirun -np $${i} --hostfile hosts mpi_hello; 
-		sleep 0.5; 
-	done
+	for i in 8 16; do printf "\n\nTest %d\n" $${i}; mpirun -np $${i} --hostfile hosts mpi_hello; sleep 0.5; done
 
 
 clean:
