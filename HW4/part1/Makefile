@@ -8,5 +8,12 @@ test_hello: hello
 linear:
 	mpicxx pi_block_linear.cc -o pi_block_linear; mpirun -np 4 --hostfile hosts pi_block_linear 1000000000
 
+test_linear:
+	mpirun -np  2 --hostfile hosts pi_block_linear 1000000000
+	mpirun -np  4 --hostfile hosts pi_block_linear 1000000000
+	mpirun -np  8 --hostfile hosts pi_block_linear 1000000000
+	mpirun -np 12 --hostfile hosts pi_block_linear 1000000000
+	mpirun -np 16 --hostfile hosts pi_block_linear 1000000000
+
 clean:
-	rm -f mpi_hello
+	rm -f mpi_hello pi_block_linear
