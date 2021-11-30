@@ -35,19 +35,39 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
+
+    lol num_toss = tosses / world_size;
+    if (world_rank == world_size - 1)
+        num_toss += tosses % world_size;
+
+    unsigned int seed = time(NULL) ^ world_rank;
+
+    lol ans = 0;
+    rand_toss(ans, num_toss, seed);
+
+
+    lol ans_sum;
     if (world_rank == 0) {
         // Master
+        MPI_Alloc_mem(sizeof(lol), MPI_INFO_NULL, &ans_sum);
+        ans_sum = ans;
+        MPI_Win_create(&ans_sum, sizeof(lol), sizeof(lol), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
     }
     else {
         // Workers
-    }
 
+        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, win);
+        MPI_Accumulate(&ans, 1, MPI_LONG_LONG, 0, 0, 1, MPI_LONG_LONG, MPI_SUM, &win);
+        MPI_Win_unlock(0, win);
+    }
     MPI_Win_free(&win);
 
     if (world_rank == 0) {
         // TODO: handle PI result
 
-
+        pi_result = (double) 4.0 * ans_sum / tosses;
 
         // --- DON'T TOUCH ---
         double end_time = MPI_Wtime();
