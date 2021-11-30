@@ -45,18 +45,19 @@ int main(int argc, char **argv) {
 
     if (world_rank > 0) {
         // TODO: MPI workers
+		MPI_Request requests;
         MPI_Isend(ans, 1, MPI_LONG_LONG, 0, 0, MPI_COMM_WORLD, &requests);
     }
     else if (world_rank == 0) {
         // TODO: non-blocking MPI communication.
         // Use MPI_Irecv, MPI_Wait or MPI_Waitall.
 
-        lol* ret = calloc(world_size, sizeof(lol));
-        MPI_Request* requests = calloc(world_size, sizeof(MPI_Request));
-        MPI_Status* status = calloc(world_size, sizeof(MPI_Status));
+        lol* ret = (lol*) calloc(world_size, sizeof(lol));
+        MPI_Request* requests = (MPI_Request*) calloc(world_size, sizeof(MPI_Request));
+        MPI_Status* status = (MPI_Status*) calloc(world_size, sizeof(MPI_Status));
 
         for (int i = 1; i < world_size; i++) {
-            MPI_IRecv(&ret[i], 1, MPI_LONG_LONG, i, 0, MPI_COMM_WORLD, &requests[i]);
+            MPI_Irecv(&ret[i], 1, MPI_LONG_LONG, i, 0, MPI_COMM_WORLD, &requests[i]);
         }
         MPI_Waitall(world_size - 1, requests + 1, status + 1);
         for (int i = 1; i < world_size; i++) {
