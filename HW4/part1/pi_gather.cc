@@ -16,10 +16,9 @@ void rand_toss(lol& ans, lol num_toss, unsigned int seed) {
         x = (rand_max - rand_min) * rand_r(&seed) / (RAND_MAX + 1.0) + rand_min;
         y = (rand_max - rand_min) * rand_r(&seed) / (RAND_MAX + 1.0) + rand_min;
 
-        if (x * x + y * y - rand_max <= eps) *ans += 1;
+        if (x * x + y * y - rand_max <= eps) ans += 1;
     }
 }
-
 
 int main(int argc, char **argv) {
     // --- DON'T TOUCH ---
@@ -40,13 +39,15 @@ int main(int argc, char **argv) {
         num_toss += tosses % world_size;
 
     lol* globl_ans = (lol*) calloc(world_size, sizeof(lol));
-    lol* local_ans = (lol*) calloc(world_size, sizeof(lol));
+    lol local_ans = 0;
 
     unsigned int seed = time(NULL) ^ world_rank;
-    rand_toss(local_ans[world_rank], num_toss, seed);
+
+	// local_ans = 0;
+    rand_toss(local_ans, num_toss, seed);
 
     // TODO: use MPI_Gather
-    MPI_Gather(local_ans, world_size, MPI_LONG_LONG, globl_ans, world_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+    MPI_Gather(&local_ans, 1, MPI_LONG_LONG, globl_ans, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 
 
     if (world_rank == 0) {

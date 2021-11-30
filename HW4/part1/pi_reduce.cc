@@ -10,13 +10,13 @@ typedef long long lol;
 const double rand_min = -1.0;
 const double rand_max =  1.0;
 
-void rand_toss(lol* ans, lol num_toss, unsigned int seed) {
+void rand_toss(lol& ans, lol num_toss, unsigned int seed) {
     double x, y;
     for (lol i = 0; i < num_toss; i++) {
         x = (rand_max - rand_min) * rand_r(&seed) / (RAND_MAX + 1.0) + rand_min;
         y = (rand_max - rand_min) * rand_r(&seed) / (RAND_MAX + 1.0) + rand_min;
 
-        if (x * x + y * y - rand_max <= eps) *ans += 1;
+        if (x * x + y * y - rand_max <= eps) ans += 1;
     }
 }
 
@@ -37,14 +37,13 @@ int main(int argc, char **argv) {
     if (world_rank == world_size - 1)
         num_toss += tosses % world_size;
 
-    lol* local_ans = (lol*) calloc(world_size, sizeof(lol));
-
+	lol local_ans = 0;
     unsigned int seed = time(NULL) ^ world_rank;
-    rand_toss(local_ans[world_rank], num_toss, seed);
+    rand_toss(local_ans, num_toss, seed);
 
     lol ans;
     // TODO: use MPI_Reduce
-    MPI_Reduce(local_ans, &ans, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_ans, &ans, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (world_rank == 0) {
         // TODO: PI result

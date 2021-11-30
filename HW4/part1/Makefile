@@ -19,11 +19,11 @@ linear:
 	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 4 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
 
 test_linear:
-	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 2 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
-	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 4 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
-	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 8 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
-	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 12 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
-	mpicxx pi_nonblock_linear.cc -o pi_nonblock_linear; mpirun -np 16 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
+	mpirun -np 2 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
+	mpirun -np 4 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
+	mpirun -np 8 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
+	mpirun -np 12 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
+	mpirun -np 16 --hostfile hosts --map-by node pi_nonblock_linear 1000000000
 
 tree:
 	mpicxx pi_block_tree.cc -o pi_block_tree; mpirun -np 4 --hostfile hosts --map-by node pi_block_tree 1000000000	
