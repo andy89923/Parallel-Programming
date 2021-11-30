@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 typedef long long lol;
+#define eps 1e-9
 
 const double rand_min = -1.0;
 const double rand_max =  1.0;
@@ -37,21 +38,20 @@ int main(int argc, char **argv) {
         num_toss += tosses % world_size;
 
 
-    lol ans = (lol*) calloc(1, sizeof(lol));
+    lol* ans = (lol*) calloc(1, sizeof(lol));
     unsigned int seed = time(NULL) ^ world_rank;
     
     rand_toss(ans, num_toss, seed);
 
 
     // TODO: binary tree redunction
-    for (int i = 1; i <= world_size; i *= 2) {
+    for (int i = 1; i < world_size; i *= 2) {
         if (world_rank % i == 0) {
             if (world_rank % (i * 2) == 0) {
                 lol tmp;
                 MPI_Recv(&tmp, 1, MPI_LONG_LONG, world_rank + i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 *ans += tmp;
             } else {
-
 
                 MPI_Send(ans, 1, MPI_LONG_LONG, world_rank - i, 0, MPI_COMM_WORLD);
             }
