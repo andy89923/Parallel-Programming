@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
+typedef long long lol;
 #define eps 1e-9
 
 #pragma GCC optimize("Ofast", "unroll-loops")
@@ -21,17 +22,18 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 	
+
 	double rand_min = -1.0;
 	double rand_max =  1.0;
-	int ans_sum = 0;
+	lol ans_sum = 0;
 
     if (world_rank > 0) {
         // TODO: handle workers
-        int num_toss;
-        MPI_Recv(&num_toss, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        lol num_toss;
+        MPI_Recv(&num_toss, 1, MPI_LONG_LONG, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
         unsigned int seed = world_rank ^ time(NULL);
-        int* ans = (int*) calloc(1, sizeof(int));
+        lol* ans = (lol*) calloc(1, sizeof(lol));
 
         double x, y;
         for (int i = 0; i < num_toss; i++) {
@@ -42,13 +44,13 @@ int main(int argc, char **argv) {
         }
 		// printf("%d %d %d\n", world_rank, num_toss, *ans);
 
-        MPI_Send(ans, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(ans, 1, MPI_LONG_LONG, 0, 0, MPI_COMM_WORLD);
     }
     else if (world_rank == 0) {
         // TODO: master
 
-        int num_toss = tosses / world_size;
-        int* trows = (int*) calloc(world_size, sizeof(int));
+        lol num_toss = tosses / world_size;
+        lol* trows = (lol*) calloc(world_size, sizeof(lol));
 		
         for (int i = 1; i < world_size; i++) {
             trows[i] = num_toss;
@@ -56,7 +58,7 @@ int main(int argc, char **argv) {
             if (i == world_size - 1)
                 trows[i] += tosses % world_size - 1;
 
-            MPI_Send(&trows[i], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&trows[i], 1, MPI_LONG_LONG, i, 0, MPI_COMM_WORLD);
         }
 
 		unsigned int seed = time(NULL);
@@ -72,10 +74,10 @@ int main(int argc, char **argv) {
 	
     if (world_rank == 0) {
         // TODO: process PI result
-        int tmp;
+        lol tmp;
 
         for (int i = 1; i < world_size; i++) {
-            MPI_Recv(&tmp, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&tmp, 1, MPI_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             ans_sum += tmp;
 
 			// printf("%d %d\n", i, tmp);
