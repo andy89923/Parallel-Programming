@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &win);
 
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, win);
-        MPI_Accumulate(&ans, 1, MPI_LONG_LONG, 0, 0, 1, MPI_LONG_LONG, MPI_SUM, &win);
+        MPI_Accumulate(&ans, 1, MPI_LONG_LONG, 0, 0, 1, MPI_LONG_LONG, MPI_SUM, win);
         MPI_Win_unlock(0, win);
     }
     MPI_Win_free(&win);

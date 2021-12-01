@@ -35,7 +35,6 @@ test_tree:
 	mpirun -np  2 --hostfile hosts --map-by node pi_block_tree 1000000000
 	mpirun -np  4 --hostfile hosts --map-by node pi_block_tree 1000000000
 	mpirun -np  8 --hostfile hosts --map-by node pi_block_tree 1000000000
-	mpirun -np 12 --hostfile hosts --map-by node pi_block_tree 1000000000
 	mpirun -np 16 --hostfile hosts --map-by node pi_block_tree 1000000000
 
 gather:
@@ -71,5 +70,10 @@ test_one:
 	mpirun -np 12 --hostfile hosts --map-by node pi_one_side 1000000000
 	mpirun -np 16 --hostfile hosts --map-by node pi_one_side 1000000000	
 
+ping_pong:
+	mpicxx ping_pong.c -o ping_pong;	
+	mpirun -np 2 --hostfile hosts1 ping_pong
+	mpirun -np 2 --hostfile hosts2 ping_pong
+
 clean:
-	rm -f mpi_hello pi_block_linear pi_block_tree pi_nonblock_linear pi_gather pi_reduce
+	rm -f mpi_hello pi_block_linear pi_block_tree pi_nonblock_linear pi_gather pi_reduce pi_one_side ping_pong
