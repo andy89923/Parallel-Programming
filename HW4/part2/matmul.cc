@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <mpi.h>
 
-#pragma GCC optimize("O3", "Ofast", "fast-math", "unroll-Loops")
+#pragma GCC optimize("O3", "Ofast", "fast-math")
 
 void construct_matrices(int *n_ptr, int *m_ptr, int *l_ptr, int **a_mat_ptr, int **b_mat_ptr) {
 	int world_rank, world_size;
@@ -13,30 +13,37 @@ void construct_matrices(int *n_ptr, int *m_ptr, int *l_ptr, int **a_mat_ptr, int
 	if (world_rank == 0) {
 		scanf("%d%d%d", n_ptr, m_ptr, l_ptr);
 	}
-	int a_size = (*n_ptr) * (*m_ptr);
-	int b_size = (*m_ptr) * (*l_ptr);
-
-    *a_mat_ptr = (int*) calloc(a_size, sizeof(int));
-	*b_mat_ptr = (int*) calloc(b_size, sizeof(int));
-
-	if (world_rank == 0) {
-		for (int i = 0; i < *n_ptr; i++) {
-			for (int j = 0; j < *m_ptr; j++) {
-				scanf("%d", a_mat_ptr + i * (*n_ptr) + j);
-			}
-		}
-		for (int i = 0; i < *m_ptr; i++) {
-			for (int j = 0; j < *l_ptr; j++) {
-				scanf("%d", b_mat_ptr + i * (*m_ptr) + j);
-			}
-		}
-	}
 	MPI_Bcast(n_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(m_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(l_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
+ 
+	int a_size = (*n_ptr) * (*m_ptr);
+	int b_size = (*m_ptr) * (*l_ptr);
 
-    MPI_Bcast(*a_mat_ptr, 0, MPI_INT, MPI_COMM_WORLD);
-    MPI_Bcast(*b_mat_ptr, 0, MPI_INT, MPI_COMM_WORLD);
+	*a_mat_ptr = (int*) calloc(a_size, sizeof(int));
+	*b_mat_ptr = (int*) calloc(b_size, sizeof(int));
+
+	int* a = *a_mat_ptr;
+	int* b = *b_mat_ptr;
+
+	if (world_rank == 0) {
+		for (int i = 0; i < a_size; i++) {
+			scanf("%d", &a[i]);
+		}
+		for (int i = 0; i < b_size; i++) {
+			scanf("%d", &b[i]);
+		}
+	}
+
+	// MPI_Bcast(n_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    // MPI_Bcast(m_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    // MPI_Bcast(l_ptr, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    MPI_Bcast(*a_mat_ptr, a_size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(*b_mat_ptr, b_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+	// MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void matrix_multiply(const int n, const int m, const int l, const int *a_mat, const int *b_mat) {
@@ -45,8 +52,8 @@ void matrix_multiply(const int n, const int m, const int l, const int *a_mat, co
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	int ans_len = n * l;
-	int ans = (int*) calloc(ans_len, sizeof(int));
-	int tmp = (int*) calloc(ans_len, sizeof(int));
+	int* ans = (int*) calloc(ans_len, sizeof(int));
+	int* tmp = (int*) calloc(ans_len, sizeof(int));
 
 	int len = n / world_size;
 	int upr = len * world_rank;
@@ -56,22 +63,41 @@ void matrix_multiply(const int n, const int m, const int l, const int *a_mat, co
 		dow = n;
 		len = dow - upr;
 	}
+	/*
+	if (world_rank == 1) {
+		int id = 0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < l; j++) {
+				printf("%d ", b_mat[id]);
+				id++;
+			}
+			printf("\n");
+		}
+	}
+	*/	
+	// printf("rank = %d, %d, %d\n", world_rank, upr, dow);
+	
 
 	int a_base = upr * m;
 	for (int i = upr; i < dow; i++) {
 		for (int j = 0; j < l; j++) {
 			
-			int sum = 0, b_idx = 0;
+			int sum = 0, b_idx = j;
 			for (int k = 0; k < m; k++) {
 				sum += a_mat[a_base + k] * b_mat[b_idx];
-				b_idx += 1;
+				b_idx += l;
+			
+				// printf("a_base + k = %d\n", sum);
 			}
-			tmp[a_base + j] = sum;
-			a_base += m;
+			// printf("a_base %d, j %d, %d = %d\n", a_base, j, i * l + j, sum);
+			tmp[i * l + j] = sum;
 		}
+		a_base += m;
 	}
-	MPI_Reduce(tmp, ans, ans_len, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	// MPI_Barrier(MPI_COMM_WORLD);
 
+	MPI_Reduce(tmp, ans, ans_len, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	
 	if (world_rank == 0) {
 		int id = 0;
 		for (int i = 0; i < n; i++) {
@@ -81,6 +107,7 @@ void matrix_multiply(const int n, const int m, const int l, const int *a_mat, co
 			}
 			printf("\n");
 		}
+		// for (int i = 0; i < ans_len; i++) printf("%d ", ans[i]);
 	}
 }
 
