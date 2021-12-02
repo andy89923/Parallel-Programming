@@ -1,10 +1,11 @@
-HW4_0816153.zip: part1/*.cc part2/Makefile part2/main.cc part2/matmul.cc url.txt
+all: part1/*.cc part2/Makefile part2/main.cc part2/matmul.cc url.txt
 	rm -rf HW4_0816153.zip temp
 	mkdir temp
 	cd temp && mkdir part1 part2
 	cp url.txt temp/url.txt
 	cp part1/*.cc temp/part1
 	cp part2/*.cc temp/part2
+	cp part2/Makefile temp/part2/Makefile
 	cd temp && zip HW4_0816153.zip -r part1 part2 url.txt
 	cd temp && mv HW4_0816153.zip ../HW4_0816153.zip
 	rm -rf temp
