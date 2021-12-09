@@ -210,6 +210,8 @@ p =
 ##### bandwidth = p(2) / 1E-6 / 1E-6 (ms) = 155.18 (ms)
 ##### latency = 1 / p(1) / 1e9 (GB/s) = 6.44 (GB/s)
 
+![](https://i.imgur.com/cml9UpX.png)
+
 
 ##### Case 2: inter-node communication  (two processes on different nodes)
 
@@ -263,6 +265,9 @@ p =
 ```
 ##### bandwidth = p(2) / 1E-6 / 1E-6 (ms) = 8585.47 (ms)
 ##### latency = 1 / p(1) / 1e9 (GB/s) = 0.1164 (GB/s)
+
+![](https://i.imgur.com/R90Amh1.png)
+
 
 
 ## Part 2: Matrix Multiplication with MPI
