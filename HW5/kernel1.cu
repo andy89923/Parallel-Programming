@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-__device int mandel(float c_re, float c_im, int maxIterations) {
+__device__ int mandel(float c_re, float c_im, int maxIterations) {
     float z_re = c_re, z_im = c_im;
     int i;
     for (i = 0; i < maxIterations; ++i) {
@@ -27,7 +27,7 @@ __global__ void mandelKernel(float lowerX, float lowerY, float stepX, float step
     float x = lowerX + now_x * stepX;
     float y = lowerY + now_y * stepY;
 
-    int idx = now_x + now_y * resY;
+    int idx = now_x + now_y * resX;
     res_d[idx] = mandel(x, y, maxIterations);
 }
 
@@ -40,8 +40,8 @@ void hostFE(float upperX, float upperY, float lowerX, float lowerY,
     float stepX = (upperX - lowerX) / resX;
     float stepY = (upperY - lowerY) / resY;
 
-    int blk_x = ceil((float) resX / BLOCK_SIZE);
-    int blk_y = ceil((float) resY / BLOCK_SIZE);
+    int blk_x = (resX + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int blk_y = (resY + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     int siz = resX * resY * sizeof(int);
     int* res = (int*) malloc(siz);
@@ -56,6 +56,6 @@ void hostFE(float upperX, float upperY, float lowerX, float lowerY,
     cudaMemcpy(res, res_d, siz, cudaMemcpyDeviceToHost);
     memcpy(img, res, siz);
 
-    cudafree(res_d);
+    cudaFree(res_d);
     free(res);
 }
