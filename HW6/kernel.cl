@@ -1,6 +1,7 @@
 __kernel void convolution(
    	const __global float* inp_dat, __global float4* oup_dat, __constant float* fil_dat,
-   	const int imageHeight, constant int imageWidth, constant int half_fitr) {
+   	const int imageHeight, constant int imageWidth, const int half_fitr) {
+
 
 	int gid = get_global_id(0);
 	int idx = gid / 4;
