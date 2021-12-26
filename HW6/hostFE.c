@@ -40,7 +40,7 @@ void hostFE(int filterWidth, float *filter, int imageHeight, int imageWidth,
     // size_t loc_ws[2] = { 1, 1 };
     size_t glb_ws[2] = { grid_size, 1 };
 
-    clEnqueueNDRangeKernel(myqueue, kernel, 2, 0, NULL, glb_ws, 0, NULL, NULL);
+    clEnqueueNDRangeKernel(myqueue, kernel, 2, NULL, glb_ws, NULL, 0, NULL, NULL);
     clFinish(myqueue);
     clEnqueueReadBuffer(myqueue, oup_dat, CL_TRUE, 0, data_size, outputImage, 0, NULL, NULL);
 }
