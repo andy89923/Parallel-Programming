@@ -103,8 +103,15 @@ int main(int argc, char **argv)
       memset(outputImage, 0, dataSize);
       start_time = currentSeconds();
       // Run the host to execute the kernel
-      hostFE(filterWidth, filter, imageHeight, imageWidth, inputImage, outputImage,
-             &device, &context, &program);
+      
+      // OpenCL
+      // hostFE(filterWidth, filter, imageHeight, imageWidth, inputImage, outputImage,
+      //        &device, &context, &program);
+
+      // Cuda
+      hostFE_cuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
+                 float *inputImage, float *outputImage);
+      
       end_time = currentSeconds();
       recordThread[i] = end_time - start_time;
    }
