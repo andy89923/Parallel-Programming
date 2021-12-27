@@ -17,8 +17,9 @@ conv: $(OBJS)
 %.o: %.c
 	$(CC) -c $(FLAGS) $< -o $@
 
-conv_cuda: $(OBJS) kernel.cu
-	$(NVCC) -o $@ $(OBJS) kernel.cu ${CUDA_LINK_FLAGS} 
+conv_cuda: $(OBJS) kernel.o 
+	$(NVCC) $(CUDA_LINK_FLAGS) -c kernel.cu -o kernel.o 
+	$(NVCC) $(CUDA_LINK_FLAGS) -o $@ kernel.o $(OBJS) -lOpenCL 
 
 zip:
 	rm -f HW6_0816153.zip

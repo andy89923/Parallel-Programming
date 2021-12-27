@@ -105,12 +105,12 @@ int main(int argc, char **argv)
       // Run the host to execute the kernel
       
       // OpenCL
-      // hostFE(filterWidth, filter, imageHeight, imageWidth, inputImage, outputImage,
-      //        &device, &context, &program);
+      hostFE(filterWidth, filter, imageHeight, imageWidth, inputImage, outputImage,
+              &device, &context, &program);
 
       // Cuda
-      hostFE_cuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
-                 float *inputImage, float *outputImage);
+      //hostFEcuda(filterWidth, filter, imageHeight, imageWidth,
+      //           inputImage, outputImage);
       
       end_time = currentSeconds();
       recordThread[i] = end_time - start_time;

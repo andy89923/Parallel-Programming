@@ -6,12 +6,12 @@ __global__ void convKernel(
     float* inp_dat, float* oup_dat, float* fil_dat,
     int imageHeight, int imageWidth, int half_fitr) {
 
-    int poi_x = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
-    int poi_y = (blockIdx.y * blockDim.y + threadIdx.y);
+    int poi_x = (blockIdx.x * blockDim.x + threadIdx.x);
+    int poi_y = (blockIdx.y * blockDim.y + threadIdx.y) * 4;
 
-    if (poi_x >= imageHeight || poi_y >= imageWidth) continue;
+    if (poi_x >= imageHeight || poi_y >= imageWidth) return;
 
-    float4 ans = (0.0, 0.0, 0.0, 0.0), tmp, fil;
+    float4 ans = make_float4(0.0, 0.0, 0.0, 0.0), tmp, fil;
 
     int i, j, filter_idx = 0;
     int now_x, now_y, poi;
@@ -28,19 +28,27 @@ __global__ void convKernel(
 
             poi = wx + now_y;
             
-            tmp = (float4)(inp_dat[poi], inp_dat[poi+1], inp_dat[poi+2], inp_dat[poi+3]);
-            fil = fil_dat[filter_idx];
+            tmp = make_float4(inp_dat[poi], inp_dat[poi+1], inp_dat[poi+2], inp_dat[poi+3]);
+			float ff = fil_dat[filter_idx];
+            fil = make_float4(ff, ff, ff, ff);
 
-            ans += tmp * fil;
-        }
-    }
-    oup_dat[gid] = ans;
+            ans.x += tmp.x * fil.x;
+			ans.y += tmp.y * fil.y;
+			ans.z += tmp.z * fil.z;
+			ans.w += tmp.w * fil.w;
+		}
+	}
+	int idx = poi_x * imageWidth + poi_y;
+    oup_dat[idx + 0] = ans.x;
+	oup_dat[idx + 1] = ans.y;
+	oup_dat[idx + 2] = ans.z;
+	oup_dat[idx + 3] = ans.w;
 }
 
 
 #define BLOCK_SIZE 16
 
-void hostFE_cuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
+void hostFEcuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
                  float *inputImage, float *outputImage) {
 
     int blk_x = (imageHeight + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -61,7 +69,7 @@ void hostFE_cuda(int filterWidth, float *filter, int imageHeight, int imageWidth
 
     dim3 dim_block(BLOCK_SIZE, 4);
     dim3 dim_grid(blk_x, blk_y);
-    convulutionKernel <<<dim_grid, dim_block>>> (inp, ans, fit, imageHeight, imageWidth, half_fitr);
+    convKernel <<<dim_grid, dim_block>>> (inp, ans, fit, imageHeight, imageWidth, half_fitr);
 
     cudaMemcpy(outputImage, ans, data_size, cudaMemcpyDeviceToHost);
 
