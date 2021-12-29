@@ -2,8 +2,7 @@ default: conv
 
 # Cuda
 NVCC = nvcc
-CUDA_LINK_FLAGS =  -rdc=true -gencode=arch=compute_61,code=sm_61 -Xcompiler '-fPIC' 
-CUDA_COMPILE_FLAGS = --device-c -gencode=arch=compute_61,code=sm_61 -Xcompiler '-fPIC' -g -O3
+CUDA_FLAGS = -arch=compute_61 -Xcompiler '-fPIC' 
 
 # OpenCL
 CC = gcc-10
@@ -17,13 +16,15 @@ conv: $(OBJS)
 %.o: %.c
 	$(CC) -c $(FLAGS) $< -o $@
 
-conv_cuda: $(OBJS) kernel.o 
-	$(NVCC) $(CUDA_LINK_FLAGS) -c kernel.cu -o kernel.o 
-	$(NVCC) $(CUDA_LINK_FLAGS) -o $@ kernel.o $(OBJS) -lOpenCL 
+cuda: link.o $(OBJS)
+	$(NVCC) -o cuda kernel.o $(OBJS) -lcudart -lcuda -arch=compute_61 -Xcompiler '-fPIC' -O3 -lOpenCL -m64
+
+link.o:
+	$(NVCC) $(CUDA_FLAGS) -dc kernel.cu -o kernel.o
 
 zip:
 	rm -f HW6_0816153.zip
 	zip HW6_0816153.zip kernel.cl hostFE.c url.txt
 
 clean:
-	rm -f conv *.o output.bmp ref.bmp
+	rm -f cuda conv *.o output.bmp ref.bmp

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "hostFE.h"
 #include "helper.h"
+#include <cuda.h>
 
 void hostFE(int filterWidth, float *filter, int imageHeight, int imageWidth,
             float *inputImage, float *outputImage, 

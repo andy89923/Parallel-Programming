@@ -46,6 +46,11 @@ __global__ void convKernel(
 }
 
 
+extern "C" {
+	void hostFEcuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
+                 float *inputImage, float *outputImage);
+}
+
 #define BLOCK_SIZE 16
 
 void hostFEcuda(int filterWidth, float *filter, int imageHeight, int imageWidth,
